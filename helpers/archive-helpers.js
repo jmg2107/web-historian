@@ -104,6 +104,7 @@ exports.downloadUrls = function(urls) {
       });
 
     });
-  })
+  });
+
 
 };
