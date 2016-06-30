@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -15,6 +17,7 @@ exports.paths = {
   list: path.join(__dirname, '../archives/sites.txt')
 };
 
+
 // Used for stubbing paths for tests, do not modify
 exports.initialize = function(pathsObj) {
   _.each(pathsObj, function(path, type) {
@@ -25,17 +28,82 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function() {
+exports.readListOfUrls = function(callback) {
+  // Read the file's contents and return
+  // for other helper methods to use it
+  fs.readFile(exports.paths.list, 'utf8', function(err, data){
+    if(err) { throw err; }
+    // It will return an array of all the URLS
+    data = data.split('\n');
+    callback(data);
+  });
+
 };
 
-exports.isUrlInList = function() {
+exports.isUrlInList = function(url, success) {
+  // We're getting the full array of urls
+  // we need to check if the target url matches
+  var match;
+  exports.readListOfUrls(function(urls){
+    if(urls.indexOf(url) !== -1){
+      match = url;
+    }
+    success(match);
+  });
+
 };
 
-exports.addUrlToList = function() {
+exports.addUrlToList = function(url, callback) {
+  // We check if the url is in the list
+    // If not, we'll add it
+
+  if(exports.isUrlInList(url, function(found){
+    if(!found){
+      fs.appendFile(exports.paths.list, url, "utf8", function(err){
+        if(err) { throw err; }
+        // TODO: What is the callback here :)
+        // It's probably sending back 'loading.html' as a response
+        callback();
+      });
+    }
+  })){
+
+  }
+
 };
 
-exports.isUrlArchived = function() {
+exports.isUrlArchived = function(url, callback) {
+
+  // Look through path.archivedSites
+  // Use fs.readdir(path, cb)
+  // var inArchive = false;
+  var match;
+  fs.readdir(exports.paths.archivedSites, function(err,sites){
+
+    if(err) { throw err; }
+
+    if(sites.indexOf(url) !== -1){
+      match = url;
+
+    }
+    callback(match);
+  });
+
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(urls) {
+
+  // grab the contents of the website at url with http request
+  _.each(urls, function(url){
+
+    request("http://" + url, function(error, response, html){
+      // open the file with FS in archivedSites with the name of the url
+      // write into the file with contents
+      fs.writeFile(exports.paths.archivedSites + "/" + url, html, "utf8", function(){
+        console.log("wrote into file " + url);
+      });
+
+    });
+  })
+
 };
