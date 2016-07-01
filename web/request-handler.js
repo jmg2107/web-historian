@@ -29,19 +29,27 @@ var methods = {
     }
 
     // Check if the URL is already archived
-    else if(archive.isUrlArchived(testUrl, function(exists){
-      // 200
-      // return the content of the website from the archive
-      if(exists){
-        var archivePath = archive.paths.archivedSites + "/" + testUrl;
-        console.log("passed into the URL archive case");
-        readContents(res, archivePath);
-      } else{
-        // 404 if the address is not found
-        res.writeHead(404, httpHelp.headers);
-        res.end("Womp womp! Nothing found!");
-      }
-    }));
+    else {
+      archive.isUrlArchivedAsync(testUrl)
+       .then(function(exists){
+          if(exists){
+            // 200
+            // return the content of the website from the archive
+            var archivePath = archive.paths.archivedSites + "/" + testUrl;
+            console.log("passed into the URL archive case");
+            readContents(res, archivePath);
+          } else {
+            // 404 if the address is not found
+            res.writeHead(404, httpHelp.headers);
+            res.end("Womp womp! Nothing found!");
+          }
+        })
+        .catch(function(err){
+            // we hit Error: www.google.com with isUrlArchivedAsync
+            console.log("we hit " + err + " with isUrlArchivedAsync");
+        });
+
+    } // end of if statement
 
 
   },
@@ -58,8 +66,9 @@ var methods = {
       archive.addUrlToList(all, function(){
         console.log("All is " + all);
         // TODO: Send loading.html
+        console.log("We're loading the page now.");
         res.writeHead(302, httpHelp.headers);
-        res.end();
+        res.end("Goodbye!");
       });
     });
 
